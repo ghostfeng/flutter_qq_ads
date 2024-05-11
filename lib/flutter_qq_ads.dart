@@ -11,6 +11,9 @@ export 'view/ad_feed_widget.dart';
 
 /// 腾讯广告 Flutter 插件
 class FlutterQqAds {
+  //事件监听者
+  static Map<Object, OnAdEventListener> _eventListeners =
+      <Object, OnAdEventListener>{};
   // 方法通道
   static const MethodChannel _methodChannel =
       const MethodChannel('flutter_qq_ads');
@@ -162,12 +165,19 @@ class FlutterQqAds {
     return version;
   }
 
-  ///事件回调
-  ///@params onData 事件回调
-  static Future<void> onEventListener(
-      OnAdEventListener onAdEventListener) async {
-    _eventChannel.receiveBroadcastStream().listen((data) {
-      hanleAdEvent(data, onAdEventListener);
+  //添加事件监听
+  static Future<void> addEventListener(
+      Object object, OnAdEventListener onAdEventListener) async {
+    _eventListeners[object] = onAdEventListener;
+    _eventChannel.receiveBroadcastStream().listen((event) {
+      _eventListeners.forEach((key, value) {
+        hanleAdEvent(event, value);
+      });
     });
+  }
+
+  //移除事件监听
+  static Future<void> removeEventListener(Object object) async {
+    _eventListeners.remove(object);
   }
 }
